@@ -91,37 +91,37 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         int id = v.getId();
         switch (id) {
             case R.id.btn_one:
-                setExpression("1");
+                setExpression('1');
                 break;
             case R.id.btn_two:
-                setExpression("2");
+                setExpression('2');
                 break;
             case R.id.btn_three:
-                setExpression("3");
+                setExpression('3');
                 break;
             case R.id.btn_four:
-                setExpression("4");
+                setExpression('4');
                 break;
             case R.id.btn_five:
-                setExpression("5");
+                setExpression('5');
                 break;
             case R.id.btn_six:
-                setExpression("6");
+                setExpression('6');
                 break;
             case R.id.btn_seven:
-                setExpression("7");
+                setExpression('7');
                 break;
             case R.id.btn_eight:
-                setExpression("8");
+                setExpression('8');
                 break;
             case R.id.btn_nine:
-                setExpression("9");
+                setExpression('9');
                 break;
             case R.id.btn_dot:
-                setExpression(".");
+                setExpression('.');
                 break;
             case R.id.btn_zero:
-                setExpression("0");
+                setExpression('0');
                 break;
             case R.id.btn_del:
                 mNumbers = mTextView.getText().toString();
@@ -131,21 +131,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 break;
             case R.id.btn_div:
-                setExpression("/");
+                setExpression('/');
                 break;
             case R.id.btn_mul:
-                setExpression("*");
+                setExpression('*');
                 break;
             case R.id.btn_sub:
-                setExpression("-");
+                setExpression('-');
                 break;
             case R.id.btn_add:
-                setExpression("+");
+                setExpression('+');
                 break;
             case R.id.btn_equal:
                 mNumbers = mTextView.getText().toString() + '$';
-                str2 = infixToPostfix(mNumbers);
-                mTextView.setText(evaluatePostfix(str2) + "");
+                if(isInfixExpValid(mNumbers)) {
+                    Toast.makeText(this, "true", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "false", Toast.LENGTH_SHORT).show();
+                }
+                //str2 = infixToPostfix(mNumbers);
+                //mTextView.setText(evaluatePostfix(str2) + "");
                 //mTextView.setText(str2);
                 break;
         }
@@ -155,8 +160,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return mTextView.getText().toString();
     }
 
-    private void setExpression(String digit) {
-        mTextView.setText(getNumber() + digit);
+    private void setExpression(char ch) {
+        String exp = getNumber();
+        if (isOperator(ch)) {
+            int len = exp.length();
+            if (len > 0) {
+                char lastCh = exp.charAt(len - 1);
+                if (isOperator(lastCh)) {
+                    exp = exp.substring(0, len - 1);
+                }
+
+            }
+        }
+        mTextView.setText(exp + ch);
     }
 
 
@@ -180,9 +196,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             char ch = infixExpression.charAt(i);
             if (isDigit(ch)) {
                 num = num + ch;
-            } else if(ch != '$') {
+            } else if (ch != '$') {
 
-            if (isOperator(ch)) {
+                if (isOperator(ch)) {
                     result = result + "(" + num + ")";
                     num = "";
                     while (!operatorStack.empty() && precedence(operatorStack.peek()) >= precedence(ch)) {
@@ -222,18 +238,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static double evaluatePostfix(String postfixExp) {
         final Stack<Double> resultStk = new Stack<>();
         String num = "";
-        for(int i = 0; i < postfixExp.length(); i++) {
+        for (int i = 0; i < postfixExp.length(); i++) {
             char ch = postfixExp.charAt(i);
-            if(isOperator(ch)) {
+            if (isOperator(ch)) {
                 double operatorRight = resultStk.pop();
                 double operatorLeft = resultStk.pop();
                 double res = compute(ch, operatorLeft, operatorRight);
                 resultStk.push(res);
             } else {
-                if(isDigit(ch)) {
+                if (isDigit(ch)) {
                     num += ch;
                 }
-                if(ch == ')') {
+                if (ch == ')') {
                     resultStk.push(Double.parseDouble(num));
                     num = "";
                 }
@@ -255,11 +271,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case '7':
             case '8':
             case '9':
+            case '.':
                 return true;
         }
         return false;
 
     }
+
     public static boolean isOperator(char ch) {
         switch (ch) {
             case '+':
@@ -271,4 +289,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         return false;
 
     }
+
+    private static boolean isInfixExpValid(String exp) {
+        for (int i = 0; i < exp.length(); i++) {
+            char ch = exp.charAt(i);
+            if (isOperator(ch)) {
+                int len = exp.length();
+                if(exp.indexOf(ch) > 0 && exp.indexOf(ch) < len - 1) {
+                    if (!isDigit(exp.charAt(i - 1)) || !isDigit(exp.charAt(i + 1))) {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 }
+
