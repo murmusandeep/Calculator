@@ -2,17 +2,13 @@ package com.example.calci;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.*;
-
 
 import java.util.Stack;
-import java.lang.Math;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
@@ -39,6 +35,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String mNumbers = "";
     private String str2 = "";
 
+    private static final String expression = "expression";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +62,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mButtonEqual = findViewById(R.id.btn_equal);
 
         mTextView = findViewById(R.id.tv_num);
+
+        if(savedInstanceState != null) {
+            String expr = savedInstanceState.get(expression).toString();
+            mTextView.setText(expr);
+        }
 
         mButtonOne.setOnClickListener(this);
         mButtonTwo.setOnClickListener(this);
@@ -144,28 +147,44 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.btn_equal:
                 mNumbers = mTextView.getText().toString() + '$';
+                /*mTextView.setText(infixToPostfix(mNumbers));
+                return;*/
                 if(isInfixExpValid(mNumbers)) {
-                    Toast.makeText(this, "true", Toast.LENGTH_SHORT).show();
+                    str2 = infixToPostfix(mNumbers);
+                    mTextView.setText(evaluatePostfix(str2) + "");
                 } else {
-                    Toast.makeText(this, "false", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Math error", Toast.LENGTH_SHORT).show();
                 }
-                //str2 = infixToPostfix(mNumbers);
-                //mTextView.setText(evaluatePostfix(str2) + "");
-                //mTextView.setText(str2);
+                //mTextView.setText(eval);
                 break;
         }
     }
 
-    private String getNumber() {
+    private String getExpression() {
         return mTextView.getText().toString();
     }
 
     private void setExpression(char ch) {
-        String exp = getNumber();
+        String exp = getExpression();
+        if(ch == '.') {
+            String num = getCurrentNumber(exp, exp.length());
+            if(num.contains(".")) {
+                return;
+            }
+        }
+        if(exp.length() == 0 && isOperator(ch)) {
+            if(ch == '-') {
+                mTextView.setText(ch + "");
+            }
+            return;
+        }
         if (isOperator(ch)) {
             int len = exp.length();
             if (len > 0) {
                 char lastCh = exp.charAt(len - 1);
+                if(len == 1 && lastCh == '-') {
+                    return;
+                }
                 if (isOperator(lastCh)) {
                     exp = exp.substring(0, len - 1);
                 }
@@ -194,18 +213,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String num = "";
         for (int i = 0; i < infixExpression.length(); i++) {
             char ch = infixExpression.charAt(i);
-            if (isDigit(ch)) {
+            if(ch == '-' && i == 0) {
                 num = num + ch;
-            } else if (ch != '$') {
+            } else {
+                if (isDigit(ch)) {
+                    num = num + ch;
+                } else if (ch != '$') {
 
-                if (isOperator(ch)) {
-                    result = result + "(" + num + ")";
-                    num = "";
-                    while (!operatorStack.empty() && precedence(operatorStack.peek()) >= precedence(ch)) {
-                        result = result + operatorStack.peek();
-                        operatorStack.pop();
+                    if (isOperator(ch)) {
+                        result = result + "(" + num + ")";
+                        num = "";
+                        while (!operatorStack.empty() && precedence(operatorStack.peek()) >= precedence(ch)) {
+                            result = result + operatorStack.peek();
+                            operatorStack.pop();
+                        }
+                        operatorStack.push(ch);
                     }
-                    operatorStack.push(ch);
                 }
             }
 
@@ -241,10 +264,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         for (int i = 0; i < postfixExp.length(); i++) {
             char ch = postfixExp.charAt(i);
             if (isOperator(ch)) {
-                double operatorRight = resultStk.pop();
-                double operatorLeft = resultStk.pop();
-                double res = compute(ch, operatorLeft, operatorRight);
-                resultStk.push(res);
+                if( ch == '-' && i == 1) {
+                    num += ch;
+                } else {
+                    double operatorRight = resultStk.pop();
+                    double operatorLeft = resultStk.pop();
+                    double res = compute(ch, operatorLeft, operatorRight);
+                    resultStk.push(res);
+                }
             } else {
                 if (isDigit(ch)) {
                     num += ch;
@@ -293,6 +320,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static boolean isInfixExpValid(String exp) {
         for (int i = 0; i < exp.length(); i++) {
             char ch = exp.charAt(i);
+            if(isOperator(ch) && i == 0 && ch == '-') {
+                return true;
+            }
             if (isOperator(ch)) {
                 int len = exp.length();
                 if(exp.indexOf(ch) > 0 && exp.indexOf(ch) < len - 1) {
@@ -304,7 +334,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
         }
+
         return true;
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(expression, mTextView.getText().toString());
+    }
+
+    private static String getCurrentNumber(String expression, int index) {
+        String number = "";
+        //after current position
+        for(int i = index-1; i >= 0; i--) {
+            char ch = expression.charAt(i);
+            if(isOperator(ch)) {
+                break;
+            }
+            number = ch + number;
+        }
+
+        return number;
     }
 }
 
