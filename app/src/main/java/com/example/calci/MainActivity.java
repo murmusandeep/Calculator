@@ -11,7 +11,7 @@ import android.widget.Toast;
 import java.util.Stack;
 
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private Button mButtonOne;
     private Button mButtonTwo;
@@ -344,7 +344,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         outState.putString(expression, mTextView.getText().toString());
     }
 
-    private static String getCurrentNumber(String expression, int index) {
+    public static String getCurrentNumber(String expression, int index) {
         String number = "";
         //after current position
         for(int i = index-1; i >= 0; i--) {
