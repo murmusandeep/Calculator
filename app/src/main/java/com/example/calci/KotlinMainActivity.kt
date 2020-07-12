@@ -244,7 +244,7 @@ class KotlinMainActivity : AppCompatActivity(), View.OnClickListener{
         return false
     }
 
-    fun compute(symbol: Char, op1: Double, op2: Double): Double {
+    private fun compute(symbol: Char, op1: Double, op2: Double): Double {
         return when (symbol) {
             '+' -> op1 + op2
             '-' -> op1 - op2
