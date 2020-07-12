@@ -153,7 +153,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     str2 = infixToPostfix(mNumbers);
                     mTextView.setText(evaluatePostfix(str2) + "");
                 } else {
-                    Toast.makeText(this, "Math error", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this,"Math error", Toast.LENGTH_SHORT).show();
                 }
                 //mTextView.setText(eval);
                 break;
