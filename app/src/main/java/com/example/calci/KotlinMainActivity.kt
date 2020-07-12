@@ -3,31 +3,12 @@ package com.example.calci
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.View
-import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.*
 
 class KotlinMainActivity : AppCompatActivity(), View.OnClickListener{
-
-    private var mButtonOne: Button? = null
-    private var mButtonTwo: Button? = null
-    private var mButtonThree: Button? = null
-    private var mButtonFour: Button? = null
-    private var mButtonFive: Button? = null
-    private var mButtonSix: Button? = null
-    private var mButtonSeven: Button? = null
-    private var mButtonEight: Button? = null
-    private var mButtonNine: Button? = null
-    private var mButtonDot: Button? = null
-    private var mButtonZero: Button? = null
-    private var mButtonDel: Button? = null
-    private var mButtonDiv: Button? = null
-    private var mButtonMul: Button? = null
-    private var mButtonSub: Button? = null
-    private var mButtonAdd: Button? = null
-    private var mButtonEqual: Button? = null
 
     private val mTextView: TextView? = null
 
@@ -82,10 +63,14 @@ class KotlinMainActivity : AppCompatActivity(), View.OnClickListener{
             R.id.btn_nine -> setExpression('9')
             R.id.btn_zero -> setExpression('0')
             R.id.btn_del -> {
-                mNumbers = mTextView!!.text.toString()
+                if (mTextView != null) {
+                    mNumbers = mTextView?.text.toString()
+                }
                 if(!mNumbers.isEmpty()){
                     mNumbers = mNumbers.substring(0, mNumbers.length - 1)
-                    mTextView.text = mNumbers
+                    if (mTextView != null) {
+                        mTextView?.text = mNumbers
+                    }
                 }
             }
             R.id.btn_div -> setExpression('/')
@@ -93,14 +78,14 @@ class KotlinMainActivity : AppCompatActivity(), View.OnClickListener{
             R.id.btn_add -> setExpression('+')
             R.id.btn_sub -> setExpression('-')
             R.id.btn_equal -> {
-                mNumbers = mTextView!!.text.toString() + '$'
+                mNumbers = mTextView?.text.toString() + '$'
                 /*mTextView.setText(infixToPostfix(mNumbers));
                 return;*/
                 /*mTextView.setText(infixToPostfix(mNumbers));
                 return;*/
                 if (isInfixExpValid(mNumbers)) {
                     str2 = infixToPostfix(mNumbers)
-                    mTextView!!.setText(evaluatePostfix(str2).toString() + "")
+                    mTextView?.text = evaluatePostfix(str2).toString() + ""
                 } else {
                     Toast.makeText(this, "Math error", Toast.LENGTH_SHORT).show()
                 }
@@ -134,31 +119,31 @@ class KotlinMainActivity : AppCompatActivity(), View.OnClickListener{
             }
             return
         }
-        if (MainActivity.isOperator(ch)) {
+        if (isOperator(ch)) {
             val len = exp.length
             if (len > 0) {
                 val lastCh = exp[len - 1]
                 if (len == 1 && lastCh == '-') {
                     return
                 }
-                if (MainActivity.isOperator(lastCh)) {
+                if (isOperator(lastCh)) {
                     exp = exp.substring(0, len - 1)
                 }
             }
         }
-        mTextView!!.text = exp + ch
+        mTextView?.text = exp + ch
     }
 
     private fun getExpression(): String? {
-        return mTextView!!.text.toString()
+        return mTextView?.text.toString()
     }
 
-     fun getCurrentNumber(expression: String, index: Int): String? {
+     private fun getCurrentNumber(expression: String, index: Int): String? {
         var number = ""
         //after current position
         for (i in index - 1 downTo 0) {
             val ch = expression[i]
-            if (MainActivity.isOperator(ch)) {
+            if (isOperator(ch)) {
                 break
             }
             number = ch.toString() + number
@@ -166,30 +151,30 @@ class KotlinMainActivity : AppCompatActivity(), View.OnClickListener{
         return number
     }
 
-    fun isOperator(ch: Char): Boolean {
+    private fun isOperator(ch: Char): Boolean {
         when (ch) {
             '+', '-', '*', '/' -> return true
         }
         return false
     }
 
-    fun infixToPostfix(infixExpression: String): String {
+    private fun infixToPostfix(infixExpression: String): String {
         val operatorStack = Stack<Char>()
         var result = ""
         var num = ""
         for (i in 0 until infixExpression.length) {
             val ch = infixExpression[i]
             if (ch == '-' && i == 0) {
-                num = num + ch
+                num += ch
             } else {
                 if (isDigit(ch)) {
-                    num = num + ch
+                    num += ch
                 } else if (ch != '$') {
                     if (MainActivity.isOperator(ch)) {
                         result = "$result($num)"
                         num = ""
                         while (!operatorStack.empty() && precedence(operatorStack.peek()) >= precedence(ch)) {
-                            result = result + operatorStack.peek()
+                            result += operatorStack.peek()
                             operatorStack.pop()
                         }
                         operatorStack.push(ch)
@@ -199,7 +184,7 @@ class KotlinMainActivity : AppCompatActivity(), View.OnClickListener{
         }
         result = "$result($num)"
         while (!operatorStack.empty()) {
-            result = result + operatorStack.peek()
+            result += operatorStack.peek()
             operatorStack.pop()
         }
         return result
@@ -208,10 +193,10 @@ class KotlinMainActivity : AppCompatActivity(), View.OnClickListener{
     private fun isInfixExpValid(exp: String): Boolean {
         for (i in 0 until exp.length) {
             val ch = exp[i]
-            if (MainActivity.isOperator(ch) && i == 0 && ch == '-') {
+            if (isOperator(ch) && i == 0 && ch == '-') {
                 return true
             }
-            if (MainActivity.isOperator(ch)) {
+            if (isOperator(ch)) {
                 val len = exp.length
                 if (exp.indexOf(ch) > 0 && exp.indexOf(ch) < len - 1) {
                     if (isDigit(exp[i - 1]) || isDigit(exp[i + 1])) {
@@ -236,7 +221,7 @@ class KotlinMainActivity : AppCompatActivity(), View.OnClickListener{
                 } else {
                     val operatorRight = resultStk.pop()
                     val operatorLeft = resultStk.pop()
-                    val res = MainActivity.compute(ch, operatorLeft, operatorRight)
+                    val res = compute(ch, operatorLeft, operatorRight)
                     resultStk.push(res)
                 }
             } else {
